@@ -1,0 +1,16 @@
+{
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"],
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    // Allows for the parsing of modern ECMAScript features
+    "sourceType": "module"
+    // Allows for the use of imports
+  },
+  "rules": {
+    // Place to specify ESLint rules. Can be used to overwrite rules specified from Pthe extended configs
+    // e.g. "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/prefer-for-of": ["error"],
+    "@typescript-eslint/no-non-null-assertion": "off"
+    //"@typescript-eslint/ban-ts-comment": "off"
+  }
+}
