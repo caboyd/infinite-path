@@ -1,4 +1,13 @@
+import { useGLTF } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
+
+function load_Tile_GLTF(): Tile_GLTF {
+    return useGLTF("./assets/tower-defense-kit/tile.glb") as unknown as Tile_GLTF;
+}
+
+function load_Tile_Straight_GLTF(): Tile_Straight_GLTF {
+    return useGLTF("./assets/tower-defense-kit/tile_straight.glb") as unknown as Tile_Straight_GLTF;
+}
 
 export type Tile_Straight_GLTF = GLTF & {
     nodes: {
@@ -11,7 +20,6 @@ export type Tile_Straight_GLTF = GLTF & {
         foliage: THREE.MeshStandardMaterial;
         dirtDark: THREE.MeshStandardMaterial;
     };
-
 };
 
 export type Tile_GLTF = GLTF & {
@@ -23,5 +31,4 @@ export type Tile_GLTF = GLTF & {
         dirt: THREE.MeshStandardMaterial;
         foliage: THREE.MeshStandardMaterial;
     };
-
 };

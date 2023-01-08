@@ -1,18 +1,8 @@
 import { useGLTF } from "@react-three/drei";
-import { GroupProps } from "@react-three/fiber";
-import { useRef, useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Group } from "three";
-import { Tile_GLTF, Tile_Straight_GLTF } from "./TileData";
 
 const file = "./assets/tower-defense-kit/tile.glb";
-
-function load_Tile_GLTF(): Tile_GLTF {
-    return useGLTF("./assets/tower-defense-kit/tile.glb") as unknown as Tile_GLTF;
-}
-
-function load_Tile_Straight_GLTF(): Tile_Straight_GLTF {
-    return useGLTF("./assets/tower-defense-kit/tile_straight.glb") as unknown as Tile_Straight_GLTF;
-}
 
 export const RandomTile = (props: JSX.IntrinsicElements["group"]) => {
     const b = Math.random() > 0.5;
@@ -60,3 +50,10 @@ const Tile_Straight = (props: JSX.IntrinsicElements["group"]) => {
 };
 
 useGLTF.preload(file);
+function load_Tile_GLTF(): { nodes: any; materials: any } {
+    throw new Error("Function not implemented.");
+}
+
+function load_Tile_Straight_GLTF(): { nodes: any; materials: any } {
+    throw new Error("Function not implemented.");
+}
