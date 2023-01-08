@@ -28,34 +28,33 @@ const tile_center = new THREE.Vector3(0, 0, 0);
 
 const Tiles = (props: JSX.IntrinsicElements["group"]) => {
     const [tiles, setTiles] = useState<JSX.Element[]>();
-    const ref = useRef<OrbitControlsType>(null!);
+    const orbit_ref = useRef<OrbitControlsType>(null!);
 
     const genTile = (x: number, z: number) => {
         return <RandomTile position={[x, 0, z]} key={`tile:${index++},x:${x},z:${z}`} />;
     };
 
     useFrame((state, delta) => {
-        const center = tile_center;
-        center.x += delta;
-        ref.current.object.position.x += delta;
-        ref.current.target.copy(tile_center);
-        ref.current.update();
+        tile_center.x += delta;
+        orbit_ref.current.object.position.x += delta;
+        orbit_ref.current.target.copy(tile_center);
+        orbit_ref.current.update();
 
         if (!tiles) return;
-        const x = Math.floor(center.x + TILE_DIM / 2);
+        const x = Math.floor(tile_center.x + TILE_DIM / 2);
         if (last_x === x) return;
         last_x = x;
 
         const new_tiles: JSX.Element[] = [];
         for (const tile of tiles) {
             const tile_x = tile.props.position[0];
-            if (tile_x > center.x - TILE_DIM / 2 && tile_x < center.x + TILE_DIM / 2) {
+            if (tile_x > tile_center.x - TILE_DIM / 2 && tile_x < tile_center.x + TILE_DIM / 2) {
                 new_tiles.push(tile);
             }
         }
 
         for (let z0 = -HALF_DIM; z0 < HALF_DIM; z0++) {
-            const z = Math.floor(z0 + center.z);
+            const z = Math.floor(z0 + tile_center.z);
             if (!tilesIncludes(tiles, `x:${x},z:${z}`)) {
                 new_tiles.push(genTile(x, z));
             }
@@ -63,12 +62,6 @@ const Tiles = (props: JSX.IntrinsicElements["group"]) => {
 
         setTiles(new_tiles);
         //console.log(new_tiles.length);
-    });
-    useThree(({ camera }) => {
-        const target = new THREE.Vector3(0, -1, 0);
-        target.add(camera.position);
-        //camera.lookAt(target);
-        if (!ref.current) return;
     });
 
     useEffect(() => {
@@ -84,7 +77,7 @@ const Tiles = (props: JSX.IntrinsicElements["group"]) => {
     return (
         <group {...props}>
             {tiles}
-            <OrbitControls ref={ref} />
+            <OrbitControls ref={orbit_ref} />
         </group>
     );
 };
@@ -108,5 +101,3 @@ const App = () => {
 };
 
 export default App;
-
-useGLTF.preload("./assets/tower-defense-kit/detail_crystal.glb");

@@ -1,4 +1,7 @@
 import { useGLTF } from "@react-three/drei";
+import { GroupProps } from "@react-three/fiber";
+import { useRef, useEffect } from "react";
+import { Group } from "three";
 import { Tile_GLTF, Tile_Straight_GLTF } from "./TileData";
 
 const file = "./assets/tower-defense-kit/tile.glb";
@@ -29,10 +32,16 @@ const Tile = (props: JSX.IntrinsicElements["group"]) => {
 };
 
 const Tile_Straight = (props: JSX.IntrinsicElements["group"]) => {
+    const ref = useRef<Group>(null!);
+
+    useEffect(() => {
+        ref.current.rotateY(Math.PI / 2);
+    }, []);
+
     //https://gltf.pmnd.rs/
     const { nodes, materials } = load_Tile_Straight_GLTF();
     return (
-        <group {...props}>
+        <group ref={ref} {...props}>
             <mesh castShadow receiveShadow geometry={nodes.Mesh_tile_straight.geometry} material={materials.dirt} />
             <mesh
                 castShadow
