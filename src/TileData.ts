@@ -1,11 +1,11 @@
 import { useGLTF } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
 
-function load_Tile_GLTF(): Tile_GLTF {
+export function load_Tile_GLTF(): Tile_GLTF {
     return useGLTF("./assets/tower-defense-kit/tile.glb") as unknown as Tile_GLTF;
 }
 
-function load_Tile_Straight_GLTF(): Tile_Straight_GLTF {
+export function load_Tile_Straight_GLTF(): Tile_Straight_GLTF {
     return useGLTF("./assets/tower-defense-kit/tile_straight.glb") as unknown as Tile_Straight_GLTF;
 }
 
