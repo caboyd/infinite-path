@@ -21,7 +21,7 @@ const Tile = (props: JSX.IntrinsicElements["group"]) => {
     //https://gltf.pmnd.rs/
     const { nodes, materials } = load_Tile_GLTF();
     return (
-        <group {...props} dispose={null}>
+        <group {...props}>
             <mesh castShadow receiveShadow geometry={nodes.Mesh_tile.geometry} material={materials.dirt} />
             <mesh castShadow receiveShadow geometry={nodes.Mesh_tile_1.geometry} material={materials.foliage} />
         </group>
@@ -32,7 +32,7 @@ const Tile_Straight = (props: JSX.IntrinsicElements["group"]) => {
     //https://gltf.pmnd.rs/
     const { nodes, materials } = load_Tile_Straight_GLTF();
     return (
-        <group {...props} dispose={null}>
+        <group {...props} >
             <mesh castShadow receiveShadow geometry={nodes.Mesh_tile_straight.geometry} material={materials.dirt} />
             <mesh
                 castShadow

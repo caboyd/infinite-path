@@ -4,6 +4,8 @@ import { PerspectiveCamera, Vector3 } from "three";
 import { RandomTile } from "./Tile";
 import { useEffect, useState } from "react";
 
+const TILE_DIM = 20;
+
 function tilesIncludes(tiles: JSX.Element[], key: string): boolean {
     let result = false;
     tiles.findIndex((tile) => {
@@ -22,6 +24,7 @@ let index = 0;
 const Scene = (props: JSX.IntrinsicElements["group"]) => {
     const [tiles, setTiles] = useState<JSX.Element[]>();
     const new_tiles: JSX.Element[] = [];
+    let last_x = 0;
 
     const genTile = (x: number, z: number) => {
         return <RandomTile position={[x, 0, z]} key={`tile:${index++},x:${x},z:${z}`} />;
@@ -30,29 +33,31 @@ const Scene = (props: JSX.IntrinsicElements["group"]) => {
     useFrame((state, delta) => {
         const cam_pos = state.camera.position;
         state.camera.position.x += delta;
-        // state.camera.position.z -= delta;
+        let changed = false;
         new_tiles.length = 0;
 
         if (!tiles) return;
+        const x = Math.ceil(cam_pos.x + TILE_DIM / 2);
+        if (last_x === x) return;
+        last_x = x;
+
         for (const tile of tiles) {
             const tile_pos = new Vector3(...tile.props.position);
-            if (tile_pos.x > cam_pos.x - 20) {
+            if (tile_pos.x > cam_pos.x - TILE_DIM / 2) {
                 new_tiles.push(tile);
+            } else changed = true;
+        }
+        const size_z = TILE_DIM;
+
+        for (let z0 = 0; z0 < size_z; z0++) {
+            const z = Math.floor(z0 + cam_pos.z - size_z / 2);
+            if (!tilesIncludes(tiles, `x:${x},z:${z}`)) {
+                changed = true;
+                new_tiles.push(genTile(x, z));
             }
         }
-        const size_z = 30;
-        const size_x = 20;
-        for (let x0 = size_x / 2; x0 <= size_x; x0++) {
-            const x = Math.ceil(x0 + cam_pos.x - size_x / 2);
-            if (tilesIncludes(tiles, `x:${x}`)) continue;
-            for (let z0 = 0; z0 < size_z; z0++) {
-                const z = Math.floor(z0 + cam_pos.z - size_z / 2);
-                if (!tilesIncludes(tiles, `x:${x},z:${z}`)) {
-                    new_tiles.push(genTile(x, z));
-                }
-            }
-        }
-        setTiles(new_tiles);
+
+        if (changed) setTiles(new_tiles);
         console.log(new_tiles.length);
     });
     useThree(({ camera }) => {
@@ -62,10 +67,10 @@ const Scene = (props: JSX.IntrinsicElements["group"]) => {
     });
 
     useEffect(() => {
-        const size = 15;
+        const size = TILE_DIM;
         const new_tiles = [];
-        for (let z = -size; z < size; z++) {
-            for (let x = -size; x < size; x++) {
+        for (let z = -size / 2; z < size / 2; z++) {
+            for (let x = -size / 2; x <= size / 2; x++) {
                 new_tiles.push(genTile(x, z));
             }
         }
