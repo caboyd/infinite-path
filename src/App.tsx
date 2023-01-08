@@ -1,10 +1,12 @@
-import { useGLTF } from "@react-three/drei";
+import { OrbitControls, useGLTF } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { PerspectiveCamera, Vector3 } from "three";
+import { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
+import { OrbitControls as OrbitControlsType } from "three-stdlib/controls/OrbitControls";
 import { RandomTile } from "./Tile";
-import { useEffect, useState } from "react";
 
-const TILE_DIM = 20;
+const TILE_DIM = 35;
+const HALF_DIM = Math.floor(TILE_DIM / 2 + 0.5);
 
 function tilesIncludes(tiles: JSX.Element[], key: string): boolean {
     let result = false;
@@ -22,35 +24,38 @@ function tilesIncludes(tiles: JSX.Element[], key: string): boolean {
 
 let index = 0;
 let last_x = 0;
+const tile_center = new THREE.Vector3(0, 0, 0);
 
-const Scene = (props: JSX.IntrinsicElements["group"]) => {
+const Tiles = (props: JSX.IntrinsicElements["group"]) => {
     const [tiles, setTiles] = useState<JSX.Element[]>();
+    const ref = useRef<OrbitControlsType>(null!);
 
-    const new_tiles: JSX.Element[] = [];
     const genTile = (x: number, z: number) => {
         return <RandomTile position={[x, 0, z]} key={`tile:${index++},x:${x},z:${z}`} />;
     };
 
     useFrame((state, delta) => {
-        const cam_pos = state.camera.position;
-        state.camera.position.x += delta;
-        new_tiles.length = 0;
+        const center = tile_center;
+        center.x += delta;
+        ref.current.object.position.x += delta;
+        ref.current.target.copy(tile_center);
+        ref.current.update();
 
         if (!tiles) return;
-        const x = Math.ceil(cam_pos.x + TILE_DIM / 2);
+        const x = Math.floor(center.x + TILE_DIM / 2);
         if (last_x === x) return;
         last_x = x;
 
+        const new_tiles: JSX.Element[] = [];
         for (const tile of tiles) {
-            const tile_pos = new Vector3(...tile.props.position);
-            if (tile_pos.x > cam_pos.x - TILE_DIM / 2) {
+            const tile_x = tile.props.position[0];
+            if (tile_x > center.x - TILE_DIM / 2 && tile_x < center.x + TILE_DIM / 2) {
                 new_tiles.push(tile);
             }
         }
-        const size_z = TILE_DIM;
 
-        for (let z0 = 0; z0 < size_z; z0++) {
-            const z = Math.floor(z0 + cam_pos.z - size_z / 2);
+        for (let z0 = -HALF_DIM; z0 < HALF_DIM; z0++) {
+            const z = Math.floor(z0 + center.z);
             if (!tilesIncludes(tiles, `x:${x},z:${z}`)) {
                 new_tiles.push(genTile(x, z));
             }
@@ -60,16 +65,16 @@ const Scene = (props: JSX.IntrinsicElements["group"]) => {
         //console.log(new_tiles.length);
     });
     useThree(({ camera }) => {
-        const target = new Vector3(0, -1, 0);
+        const target = new THREE.Vector3(0, -1, 0);
         target.add(camera.position);
-        camera.lookAt(target);
+        //camera.lookAt(target);
+        if (!ref.current) return;
     });
 
     useEffect(() => {
-        const size = TILE_DIM;
         const new_tiles = [];
-        for (let z = -size / 2; z < size / 2; z++) {
-            for (let x = -size / 2; x <= size / 2; x++) {
+        for (let z = -HALF_DIM; z < HALF_DIM; z++) {
+            for (let x = -HALF_DIM; x <= HALF_DIM; x++) {
                 new_tiles.push(genTile(x, z));
             }
         }
@@ -77,18 +82,26 @@ const Scene = (props: JSX.IntrinsicElements["group"]) => {
     }, []);
 
     return (
-        <group {...props} dispose={null}>
+        <group {...props}>
             {tiles}
+            <OrbitControls ref={ref} />
+        </group>
+    );
+};
+
+const Scene = () => {
+    return (
+        <>
+            <Tiles />
             <ambientLight color={[1, 1, 1]} intensity={0.2} />
             <directionalLight position={[1, 1, 1]} />
-        </group>
+        </>
     );
 };
 
 const App = () => {
     return (
-        <Canvas camera={{ fov: 70, position: [0, 25, 0] }}>
-            {/* <OrbitControls /> */}
+        <Canvas camera={{ fov: 70, position: [5, 5, 5] }}>
             <Scene />
         </Canvas>
     );
