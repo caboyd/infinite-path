@@ -1,12 +1,23 @@
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { load_Tile_GLTF, load_Tile_Straight_GLTF, Tile_Group } from "./TileData";
+import { load_Tile, tile_data, Tile_Type } from "./TileData";
 
-export function InstancedTile(tile_group: Tile_Group, valid_tile_types: number[], tile_rotation_y?: number[]) {
-    return ({ grid, position }: { grid: number[][]; position: THREE.Vector3 }) => {
+const temp = new THREE.Object3D();
+export function InstancedTile(tile_type: Tile_Type) {
+    return (grid: number[][], position: THREE.Vector3) => {
+        const tile_group = useMemo(() => load_Tile(tile_type), []);
+        const { valid_tile_types, tile_rotation_y } = tile_type;
         const grid_count = grid.length * grid[0].length;
 
-        const node_count = Object.keys(tile_group.children).length;
+        const meshes: any = tile_group.children;
+        const group_meshes_1 = meshes.map((item: any) => {
+            if (item instanceof THREE.Group) return item.children;
+        });
+        const more_meshes = group_meshes_1.flat(1).filter((e: any) => e !== undefined);
+        const all_meshes = [...meshes, ...more_meshes];
+
+        const node_count = all_meshes.length;
+        // if (Math.random() > 0.5) node_count--;
         const refs = Array.from({ length: node_count }, () => useRef<THREE.InstancedMesh>(null!));
         let instance_count = 0;
 
@@ -35,30 +46,51 @@ export function InstancedTile(tile_group: Tile_Group, valid_tile_types: number[]
             }
         });
 
-        const meshes = tile_group.children;
         return (
             <>
-                {Array.from({ length: node_count }).map((_, i) => {
-                    return (
-                        <instancedMesh
-                            key={i}
-                            ref={refs[i]}
-                            args={[meshes[i].geometry, meshes[i].material, grid_count]}
-                        ></instancedMesh>
-                    );
-                })}
+                {Array.from({ length: node_count }).map((_, i) => (
+                    <instancedMesh
+                        key={i}
+                        ref={refs[i]}
+                        args={[all_meshes[i].geometry, all_meshes[i].material, grid_count]}
+                    ></instancedMesh>
+                ))}
             </>
         );
     };
 }
 
-const temp = new THREE.Object3D();
+export function AllTiles({
+    grid,
+    position,
+    props,
+}: {
+    grid: number[][];
+    position: THREE.Vector3;
+    props?: JSX.IntrinsicElements["group"];
+}) {
+    return (
+        <group {...props}>
+            <Tile grid={grid} position={position} />
+            <TileStraight grid={grid} position={position} />
+            <TileRock grid={grid} position={position} />
+            <TileTree grid={grid} position={position} />
+        </group>
+    );
+}
+
 export function Tile({ grid, position }: { grid: number[][]; position: THREE.Vector3 }) {
-    const model = useMemo(() => load_Tile_GLTF(), []);
-    return InstancedTile(model.nodes.tile, [0])({ grid, position });
+    return InstancedTile(tile_data.tile)(grid, position);
 }
 
 export function TileStraight({ grid, position }: { grid: number[][]; position: THREE.Vector3 }) {
-    const model = useMemo(() => load_Tile_Straight_GLTF(), []);
-    return InstancedTile(model.nodes.tile_straight, [1, 2], [0, Math.PI / 2])({ grid, position });
+    return InstancedTile(tile_data.tile_straight)(grid, position);
+}
+
+export function TileRock({ grid, position }: { grid: number[][]; position: THREE.Vector3 }) {
+    return InstancedTile(tile_data.tile_rock)(grid, position);
+}
+
+export function TileTree({ grid, position }: { grid: number[][]; position: THREE.Vector3 }) {
+    return InstancedTile(tile_data.tile_tree)(grid, position);
 }

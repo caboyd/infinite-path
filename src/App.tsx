@@ -3,7 +3,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls as OrbitControlsType } from "three-stdlib/controls/OrbitControls";
-import { Tile, TileStraight } from "./Tile";
+import { Tile, TileStraight, AllTiles } from "./Tile";
 
 const TILE_DIM = 350 as const;
 const HALF_DIM = Math.floor(TILE_DIM / 2 + 0.5);
@@ -11,7 +11,7 @@ const HALF_DIM = Math.floor(TILE_DIM / 2 + 0.5);
 let last_x = 0;
 
 const tile_center = new THREE.Vector3(0, 0, 0);
-const max = 2;
+const max = 4;
 const min = 0;
 
 const Tiles = ({
@@ -56,8 +56,7 @@ const Tiles = ({
     const pos = new THREE.Vector3(Math.floor(last_x) - HALF_DIM, 0, -HALF_DIM);
     return (
         <group {...props}>
-            <Tile grid={tiles} position={pos} />
-            <TileStraight grid={tiles} position={pos} />
+            <AllTiles {...props} position={pos} grid={tiles} />
         </group>
     );
 };
