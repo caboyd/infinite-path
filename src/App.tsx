@@ -1,17 +1,18 @@
 import { OrbitControls, Stats } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useRef, useState } from "react";
+import { Perf } from "r3f-perf";
+import { Suspense, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls as OrbitControlsType } from "three-stdlib/controls/OrbitControls";
-import { Tile, TileStraight, AllTiles } from "./Tile";
+import { AllTiles } from "./Tile";
 
-const TILE_DIM = 350 as const;
+export const TILE_DIM = 300 as const;
 const HALF_DIM = Math.floor(TILE_DIM / 2 + 0.5);
 
 let last_x = 0;
 
-const tile_center = new THREE.Vector3(0, 0, 0);
-const max = 4;
+const tile_center = new THREE.Vector3(0, 5, 0);
+const max = 7;
 const min = 0;
 
 const Tiles = ({
@@ -76,9 +77,12 @@ const Scene = () => {
 
 const App = () => {
     return (
-        <Canvas camera={{ fov: 70, position: [5, 5, 5] }}>
+        <Canvas camera={{ fov: 70, position: [-5, 10, 0] }}>
             <Stats />
-            <Scene />
+            <Perf />
+            <Suspense>
+                <Scene />
+            </Suspense>
         </Canvas>
     );
 };

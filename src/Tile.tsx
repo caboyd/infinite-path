@@ -1,63 +1,79 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect } from "react";
 import * as THREE from "three";
-import { load_Tile, tile_data, Tile_Type } from "./TileData";
+import { TILE_DIM } from "./App";
+import { getTile_Type, load_Tile, Tile_Instances, Tile_Type } from "./TileData";
 
-const temp = new THREE.Object3D();
-export function InstancedTile(tile_type: Tile_Type) {
-    return (grid: number[][], position: THREE.Vector3) => {
-        const tile_group = useMemo(() => load_Tile(tile_type), []);
-        const { valid_tile_types, tile_rotation_y } = tile_type;
-        const grid_count = grid.length * grid[0].length;
+const temp: THREE.Object3D = new THREE.Object3D();
+const global_instances: Tile_Instances = {};
 
-        const meshes: any = tile_group.children;
-        const group_meshes_1 = meshes.map((item: any) => {
-            if (item instanceof THREE.Group) return item.children;
-        });
-        const more_meshes = group_meshes_1.flat(1).filter((e: any) => e !== undefined);
-        const all_meshes = [...meshes, ...more_meshes];
+function getTileInstance(child: THREE.Mesh): THREE.InstancedMesh {
+    if (!global_instances[child.name]) {
+        let max_instances = TILE_DIM * TILE_DIM;
+        if (child.name.includes("tree")) max_instances *= 4;
+        global_instances[child.name] = new THREE.InstancedMesh(child.geometry, child.material, max_instances);
+        global_instances[child.name].count = 0;
+        global_instances[child.name].name = child.name;
+    }
+    return global_instances[child.name];
+}
 
-        const node_count = all_meshes.length;
-        // if (Math.random() > 0.5) node_count--;
-        const refs = Array.from({ length: node_count }, () => useRef<THREE.InstancedMesh>(null!));
-        let instance_count = 0;
+function resetTileInstancesCount(): void {
+    Object.values(global_instances).forEach((instance) => (instance.count = 0));
+}
 
-        useEffect(() => {
-            for (let x = 0; x < grid.length; x++) {
-                for (let z = 0; z < grid[x].length; z++) {
-                    const tile_type = grid[x][z];
-                    //pass in func and other poo to customize this
-                    if (!valid_tile_types.includes(tile_type)) continue;
-                    temp.position.set(position.x + x, 0, position.z + z);
-                    if (tile_rotation_y)
-                        for (let i = 0; i < valid_tile_types.length; i++) {
-                            if (valid_tile_types[i] === tile_type) temp.rotateY(tile_rotation_y[i]);
-                        }
-                    temp.updateMatrix();
-                    refs[0].current.setMatrixAt(instance_count++, temp.matrix);
-                    //undo for reuse
-                    if (tile_rotation_y) temp.rotation.set(0, 0, 0);
-                }
+function addTileGroupInstances(
+    tile_number: number,
+    tile_type: Tile_Type,
+    group: THREE.Group,
+    x: number,
+    z: number
+): void {
+    const { valid_tile_types, tile_rotation_y } = tile_type;
+    let rotation_y = 0;
+    if (tile_rotation_y)
+        for (let i = 0; i < valid_tile_types.length; i++) {
+            if (valid_tile_types[i] === tile_number) rotation_y = tile_rotation_y[i];
+        }
+    addTileGroupInstancesRecurse(group, x, 5, z, 0, rotation_y, 0, 1, 1, 1);
+
+    function addTileGroupInstancesRecurse(
+        group: THREE.Group,
+        pos_x: number,
+        pos_y: number,
+        pos_z: number,
+        rot_x: number,
+        rot_y: number,
+        rot_z: number,
+        scale_x: number,
+        scale_y: number,
+        scale_z: number
+    ) {
+        for (const child of group.children) {
+            if (child instanceof THREE.Mesh) {
+                const instance = getTileInstance(child);
+                //TODO: Optimize this
+                temp.position.set(pos_x, pos_y, pos_z);
+                temp.scale.set(scale_x, scale_y, scale_z);
+                temp.rotation.set(rot_x, rot_y, rot_z);
+                temp.updateMatrix();
+                instance.setMatrixAt(instance.count++, temp.matrix);
             }
-            refs[0].current.instanceMatrix.needsUpdate = true;
-            refs[0].current.count = instance_count;
-            for (const ref of refs) {
-                ref.current.instanceMatrix = refs[0].current.instanceMatrix;
-                ref.current.count = refs[0].current.count;
+            if (child instanceof THREE.Group) {
+                addTileGroupInstancesRecurse(
+                    child,
+                    child.position.x + pos_x,
+                    child.position.y + pos_y,
+                    child.position.z + pos_z,
+                    child.rotation.x + rot_x,
+                    child.rotation.y + rot_y,
+                    child.rotation.z + rot_z,
+                    child.scale.x * scale_x,
+                    child.scale.x * scale_y,
+                    child.scale.x * scale_z
+                );
             }
-        });
-
-        return (
-            <>
-                {Array.from({ length: node_count }).map((_, i) => (
-                    <instancedMesh
-                        key={i}
-                        ref={refs[i]}
-                        args={[all_meshes[i].geometry, all_meshes[i].material, grid_count]}
-                    ></instancedMesh>
-                ))}
-            </>
-        );
-    };
+        }
+    }
 }
 
 export function AllTiles({
@@ -69,28 +85,28 @@ export function AllTiles({
     position: THREE.Vector3;
     props?: JSX.IntrinsicElements["group"];
 }) {
+    resetTileInstancesCount();
+
+    for (let x = 0; x < grid.length; x++) {
+        for (let z = 0; z < grid[x].length; z++) {
+            const tile_number = grid[x][z];
+            const tile_type = getTile_Type(tile_number);
+            const tile_group = load_Tile(tile_type);
+            addTileGroupInstances(tile_number, tile_type, tile_group, position.x + x, position.z + z);
+        }
+    }
+
+    useEffect(() => {
+        Object.values(global_instances).forEach((instance) => {
+            instance.instanceMatrix.needsUpdate = true;
+        });
+    });
+
     return (
         <group {...props}>
-            <Tile grid={grid} position={position} />
-            <TileStraight grid={grid} position={position} />
-            <TileRock grid={grid} position={position} />
-            <TileTree grid={grid} position={position} />
+            {Object.values(global_instances).map((instance, i) => {
+                return <primitive key={`instance${i}-${instance.name}`} object={instance}></primitive>;
+            })}
         </group>
     );
-}
-
-export function Tile({ grid, position }: { grid: number[][]; position: THREE.Vector3 }) {
-    return InstancedTile(tile_data.tile)(grid, position);
-}
-
-export function TileStraight({ grid, position }: { grid: number[][]; position: THREE.Vector3 }) {
-    return InstancedTile(tile_data.tile_straight)(grid, position);
-}
-
-export function TileRock({ grid, position }: { grid: number[][]; position: THREE.Vector3 }) {
-    return InstancedTile(tile_data.tile_rock)(grid, position);
-}
-
-export function TileTree({ grid, position }: { grid: number[][]; position: THREE.Vector3 }) {
-    return InstancedTile(tile_data.tile_tree)(grid, position);
 }
