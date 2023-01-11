@@ -1,18 +1,21 @@
-import { useEffect } from "react";
 import * as THREE from "three";
-import { TILE_DIM } from "./App";
+import { MAX_TILE_TYPES, TILE_DIM } from "./App";
 import { getTile_Type, load_Tile, Tile_Instances, Tile_Type } from "./TileData";
+import { useFrame } from "@react-three/fiber";
 
-const temp: THREE.Object3D = new THREE.Object3D();
 const global_instances: Tile_Instances = {};
 
 function getTileInstance(child: THREE.Mesh): THREE.InstancedMesh {
     if (!global_instances[child.name]) {
         let max_instances = TILE_DIM * TILE_DIM;
+        //if (child.name.includes("straight")) max_instances *= 2;
         if (child.name.includes("tree")) max_instances *= 4;
-        global_instances[child.name] = new THREE.InstancedMesh(child.geometry, child.material, max_instances);
-        global_instances[child.name].count = 0;
-        global_instances[child.name].name = child.name;
+        const instance = new THREE.InstancedMesh(child.geometry, child.material, max_instances);
+        global_instances[child.name] = instance;
+        instance.count = 0;
+        instance.name = child.name;
+        instance.receiveShadow = true;
+        instance.castShadow = true;
     }
     return global_instances[child.name];
 }
@@ -34,16 +37,14 @@ function addTileGroupInstances(
         for (let i = 0; i < valid_tile_types.length; i++) {
             if (valid_tile_types[i] === tile_number) rotation_y = tile_rotation_y[i];
         }
-    addTileGroupInstancesRecurse(group, x, 5, z, 0, rotation_y, 0, 1, 1, 1);
+    addTileGroupInstancesRecurse(group, x, 5, z, rotation_y, 1, 1, 1);
 
     function addTileGroupInstancesRecurse(
         group: THREE.Group,
         pos_x: number,
         pos_y: number,
         pos_z: number,
-        rot_x: number,
         rot_y: number,
-        rot_z: number,
         scale_x: number,
         scale_y: number,
         scale_z: number
@@ -51,12 +52,43 @@ function addTileGroupInstances(
         for (const child of group.children) {
             if (child instanceof THREE.Mesh) {
                 const instance = getTileInstance(child);
-                //TODO: Optimize this
-                temp.position.set(pos_x, pos_y, pos_z);
-                temp.scale.set(scale_x, scale_y, scale_z);
-                temp.rotation.set(rot_x, rot_y, rot_z);
-                temp.updateMatrix();
-                instance.setMatrixAt(instance.count++, temp.matrix);
+                const cost = Math.cos(rot_y);
+                const sint = Math.sin(rot_y);
+
+                //Note: Only allows rotation on y axis
+                //Composition matrix of position matrix * rotation matrix * scale matrix
+                //({
+                //      {scale_x*cos(t),    0,          scale_z*sin(t),     pos_x},
+                //      {0,                 scale_y,    0,                  pos_y},
+                //      {-scale_x*sin(t),   0,          scale_z*cos(t),     pos_z},
+                //      {0,                 0,          0,                  1    }
+                //})
+                if (instance.count == instance.instanceMatrix.count) {
+                    console.warn(`too many instances for ${instance.name}`);
+                    continue;
+                }
+                const offset = instance.count * 16;
+                const array = instance.instanceMatrix.array as Float32Array;
+                array[offset + 0] = scale_x * cost;
+                array[offset + 4] = 0;
+                array[offset + 8] = scale_z * sint;
+                array[offset + 12] = pos_x;
+
+                array[offset + 1] = 0;
+                array[offset + 5] = scale_y;
+                array[offset + 9] = 0;
+                array[offset + 13] = pos_y;
+
+                array[offset + 2] = -scale_x * sint;
+                array[offset + 6] = 0;
+                array[offset + 10] = scale_z * cost;
+                array[offset + 14] = pos_z;
+
+                array[offset + 3] = 0;
+                array[offset + 7] = 0;
+                array[offset + 11] = 0;
+                array[offset + 15] = 1;
+                instance.count++;
             }
             if (child instanceof THREE.Group) {
                 addTileGroupInstancesRecurse(
@@ -64,9 +96,7 @@ function addTileGroupInstances(
                     child.position.x + pos_x,
                     child.position.y + pos_y,
                     child.position.z + pos_z,
-                    child.rotation.x + rot_x,
                     child.rotation.y + rot_y,
-                    child.rotation.z + rot_z,
                     child.scale.x * scale_x,
                     child.scale.x * scale_y,
                     child.scale.x * scale_z
@@ -86,6 +116,8 @@ export function AllTiles({
     props?: JSX.IntrinsicElements["group"];
 }) {
     resetTileInstancesCount();
+    const instance_needs_update = Array.from({ length: Object.keys(global_instances).length }, () => true);
+    const global_instances_arr = Object.values(global_instances);
 
     for (let x = 0; x < grid.length; x++) {
         for (let z = 0; z < grid[x].length; z++) {
@@ -96,10 +128,19 @@ export function AllTiles({
         }
     }
 
-    useEffect(() => {
-        Object.values(global_instances).forEach((instance) => {
-            instance.instanceMatrix.needsUpdate = true;
-        });
+    let other = true;
+    useFrame(() => {
+        //only every other frame
+        other = !other;
+        if (other) return;
+        for (let i = 0; i < instance_needs_update.length; i++) {
+            if (instance_needs_update[i] == true) {
+                //only send one to gpu at a time
+                global_instances_arr[i].instanceMatrix.needsUpdate = true;
+                instance_needs_update[i] = false;
+                break;
+            }
+        }
     });
 
     return (

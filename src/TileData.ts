@@ -14,7 +14,7 @@ export const tile_data: Tiles_Type = {
     tile_tree: { name: "tile_tree", valid_tile_types: [4] },
     tile_treeDouble: { name: "tile_treeDouble", valid_tile_types: [5] },
     tile_treeQuad: { name: "tile_treeQuad", valid_tile_types: [6] },
-    tile_slope: { name: "tile_slope", valid_tile_types: [7] },
+    tile_hill: { name: "tile_hill", valid_tile_types: [7] },
 } as const;
 
 const valid_tile_types_data = (() => {
