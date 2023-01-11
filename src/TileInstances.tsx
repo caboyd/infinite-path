@@ -1,10 +1,9 @@
 import * as THREE from "three";
-import { MAX_TILE_TYPES, TILE_DIM } from "./App";
-import { getTile_Type, load_Tile, Tile_Instances, Tile_Type } from "./TileData";
 import { useFrame } from "@react-three/fiber";
+import { TILE_DIM } from "./Tiles";
+import { getTile_Type, load_Tile, Tile_Instances, Tile_Type } from "./TileData";
 
 const global_instances: Tile_Instances = {};
-
 function getTileInstance(child: THREE.Mesh): THREE.InstancedMesh {
     if (!global_instances[child.name]) {
         let max_instances = TILE_DIM * TILE_DIM;
@@ -52,9 +51,12 @@ function addTileGroupInstances(
         for (const child of group.children) {
             if (child instanceof THREE.Mesh) {
                 const instance = getTileInstance(child);
-                const cost = Math.cos(rot_y);
-                const sint = Math.sin(rot_y);
+                if (instance.count == instance.instanceMatrix.count) {
+                    console.warn(`too many instances for ${instance.name}`);
+                    continue;
+                }
 
+                //This is done because it is much faster and doesnt require mem alloc
                 //Note: Only allows rotation on y axis
                 //Composition matrix of position matrix * rotation matrix * scale matrix
                 //({
@@ -63,12 +65,12 @@ function addTileGroupInstances(
                 //      {-scale_x*sin(t),   0,          scale_z*cos(t),     pos_z},
                 //      {0,                 0,          0,                  1    }
                 //})
-                if (instance.count == instance.instanceMatrix.count) {
-                    console.warn(`too many instances for ${instance.name}`);
-                    continue;
-                }
+
                 const offset = instance.count * 16;
                 const array = instance.instanceMatrix.array as Float32Array;
+                const cost = Math.cos(rot_y);
+                const sint = Math.sin(rot_y);
+                //composition matrix is in row major but array is column major
                 array[offset + 0] = scale_x * cost;
                 array[offset + 4] = 0;
                 array[offset + 8] = scale_z * sint;
@@ -106,7 +108,7 @@ function addTileGroupInstances(
     }
 }
 
-export function AllTiles({
+export function TileInstances({
     grid,
     position,
     props,
@@ -128,11 +130,7 @@ export function AllTiles({
         }
     }
 
-    let other = true;
     useFrame(() => {
-        //only every other frame
-        other = !other;
-        if (other) return;
         for (let i = 0; i < instance_needs_update.length; i++) {
             if (instance_needs_update[i] == true) {
                 //only send one to gpu at a time
