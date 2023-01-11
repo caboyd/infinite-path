@@ -40,9 +40,7 @@ const Tiles = ({
         orbit_ref.current.update();
         light_ref.current.position.x += delta;
         light_ref.current.target.position.x += delta;
-        //light_ref.current.updateMatrixWorld();
         light_ref.current.target.updateMatrixWorld();
-        console.log(light_ref.current.position, light_ref.current.target.position);
 
         // if (!tiles) return;
         const x = Math.floor(tile_center.x);
