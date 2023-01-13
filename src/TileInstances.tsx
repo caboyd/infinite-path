@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
-import { TILE_DIM } from "./Tiles";
+import { tile_dimensions as TILE_DIM } from "./App";
 import { getTile_Type, load_Tile, Tile_Instances, Tile_Type } from "./TileData";
 
 const global_instances: Tile_Instances = {};
@@ -23,13 +23,21 @@ function resetTileInstancesCount(): void {
     Object.values(global_instances).forEach((instance) => (instance.count = 0));
 }
 
-function addTileGroupInstances(
+export function resetGlobalInstances(): void {
+    for (const key in global_instances) {
+        if (global_instances[key]) {
+            delete global_instances[key];
+        }
+    }
+}
+
+async function addTileGroupInstances(
     tile_number: number,
     tile_type: Tile_Type,
     group: THREE.Group,
     x: number,
     z: number
-): void {
+): Promise<void> {
     const { valid_tile_types, tile_rotation_y } = tile_type;
     let rotation_y = 0;
     if (tile_rotation_y)

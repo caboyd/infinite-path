@@ -4,10 +4,10 @@ import { useFrame } from "@react-three/fiber";
 import { useState, useEffect } from "react";
 import { DirectionalLight } from "three";
 import { OrbitControls } from "three-stdlib";
-import { TileInstances } from "./TileInstances";
+import { resetGlobalInstances, TileInstances } from "./TileInstances";
+import { useControls } from "leva";
 
-export const TILE_DIM = 60 as const;
-const HALF_DIM = Math.floor(TILE_DIM / 2 + 0.5);
+//export const TILE_DIM = 60 as const;
 
 let last_x = 0;
 
@@ -16,20 +16,30 @@ const max = 7;
 const min = 0;
 
 export const MAX_TILE_TYPES = max + 1;
-const tiles = new Array(TILE_DIM)
-    .fill(0)
-    .map(() => Array.from({ length: TILE_DIM }, () => Math.floor(Math.random() * (max - min + 1) + min)));
+let tiles: number[][] = [];
 
 export const Tiles = ({
     props,
+    tile_dimensions,
     orbit_ref,
     light_ref,
 }: {
     props?: JSX.IntrinsicElements["group"];
+    tile_dimensions: number;
     orbit_ref: React.MutableRefObject<OrbitControls>;
     light_ref: React.MutableRefObject<DirectionalLight>;
 }) => {
     const [changed, setChanged] = useState(true);
+    const HALF_DIM = Math.floor(tile_dimensions / 2 + 0.5);
+
+    if (tiles.length != tile_dimensions) {
+        resetGlobalInstances();
+        tiles = new Array(tile_dimensions)
+            .fill(0)
+            .map(() =>
+                Array.from({ length: tile_dimensions }, () => Math.floor(Math.random() * (max - min + 1) + min))
+            );
+    }
 
     useFrame((state, delta) => {
         delta = Math.min(delta, 5 / 60);
@@ -46,10 +56,10 @@ export const Tiles = ({
         //remove first row
         tiles.shift();
 
-        tiles.push(new Array(TILE_DIM));
+        tiles.push(new Array(tile_dimensions));
         const new_row = tiles[tiles.length - 1];
 
-        for (let z = 0; z < TILE_DIM; z++) {
+        for (let z = 0; z < tile_dimensions; z++) {
             new_row[z] = Math.floor(Math.random() * (max - min + 1) + min);
         }
 

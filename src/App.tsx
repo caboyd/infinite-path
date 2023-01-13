@@ -4,13 +4,15 @@ import { Perf } from "r3f-perf";
 import { Suspense, useRef } from "react";
 import { DirectionalLight } from "three";
 import { OrbitControls } from "three-stdlib";
+import { useControls } from "leva";
+import { Tiles } from "./Tiles";
 
-import { Tiles, TILE_DIM } from "./Tiles";
+export let tile_dimensions: number;
 
 const Scene = () => {
     const orbit_ref = useRef<OrbitControls>(null!);
     const light_ref = useRef<DirectionalLight>(null!);
-    const shadow_dim = TILE_DIM / 1.5;
+    const shadow_dim = tile_dimensions / 1.5;
     const shadow_dim_args: [number, number, number, number, number, number] = [
         -shadow_dim,
         shadow_dim,
@@ -22,7 +24,7 @@ const Scene = () => {
 
     return (
         <>
-            <Tiles orbit_ref={orbit_ref} light_ref={light_ref} />
+            <Tiles tile_dimensions={tile_dimensions} orbit_ref={orbit_ref} light_ref={light_ref} />
             <ambientLight color={[1, 1, 1]} intensity={0.2} />
             <directionalLight
                 ref={light_ref}
@@ -39,10 +41,10 @@ const Scene = () => {
 };
 
 const App = () => {
+    ({ tile_dimensions } = useControls({ tile_dimensions: { value: 60, min: 1, max: 600, step: 1 } }));
     return (
         <Canvas camera={{ fov: 70, position: [-5, 10, 0] }} shadows={"soft"}>
-            <Stats />
-            <Perf />
+            <Perf position="top-left" />
             <Suspense>
                 <Scene />
             </Suspense>
