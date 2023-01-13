@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 import { DirectionalLight } from "three";
 import { OrbitControls } from "three-stdlib";
 import { resetGlobalInstances, TileInstances } from "./TileInstances";
-import { PATH_0 } from "./TileData";
+import { PathValueToTileNumber, PATH_0 } from "./TileData";
+import { Enemies } from "./Enemies";
 
 //export const TILE_DIM = 60 as const;
 
@@ -20,8 +21,10 @@ let tiles: number[][] = [];
 
 const path = PATH_0;
 let path_row = 0;
+let latest_path_row: string[] = [];
 
 const nextPathRow = () => {
+    latest_path_row = path[path_row];
     path_row++;
     if (path_row >= path.length) path_row = 0;
 };
@@ -67,7 +70,7 @@ export const Tiles = ({
         const row = tiles[tiles.length - 1];
 
         fillRow(row);
-        
+
         setChanged(!changed);
     });
 
@@ -77,10 +80,12 @@ export const Tiles = ({
         light_ref.current.target.updateMatrixWorld();
     }, [changed]);
 
-    const pos = new THREE.Vector3(Math.floor(last_x) - HALF_DIM, 0, -HALF_DIM);
+    const top_left = new THREE.Vector3(Math.floor(last_x) - HALF_DIM, tile_center.y, -HALF_DIM);
+    const center = new THREE.Vector3(Math.floor(last_x), tile_center.y, 0);
     return (
         <group {...props}>
-            <TileInstances {...props} position={pos} grid={tiles} />
+            <TileInstances {...props} position={top_left} grid={tiles} />
+            <Enemies tile_center={center} latest_row={latest_path_row} tile_dimensions={tile_dimensions} />
         </group>
     );
 };
@@ -91,7 +96,7 @@ function fillRow(row: number[]) {
         row[z] = Math.floor(Math.random() * (max - min + 1) + min);
         if (z >= middle - path_half_size && z < middle + path_half_size) {
             const reverse_index = path_half_size * 2 - 1 - (z - middle + path_half_size);
-            row[z] = path[path_row][reverse_index];
+            row[z] = PathValueToTileNumber(path[path_row][reverse_index]);
         }
     }
     nextPathRow();

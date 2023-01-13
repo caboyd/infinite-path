@@ -1,5 +1,6 @@
 import { useGLTF } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
+import * as THREE from "three";
 
 const url = "./assets/tower-defense-kit/";
 
@@ -75,6 +76,36 @@ export function load_Tile(tt: Tile_Type): Tile_Group {
     return tile_group_cache[tt.name];
 }
 
+const ___ = "___";
+const __D = "__D";
+const __U = "__U";
+const __L = "__L";
+const __R = "__R";
+const D_R = "D_R";
+const D_L = "D_L";
+const U_R = "U_R";
+const U_L = "U_L";
+const R_U = "R_U";
+const R_D = "R_D";
+const L_U = "L_U";
+const L_D = "L_D";
+
+export enum PathValue {
+    ___ = "___",
+    __D = "__D",
+    __U = "__U",
+    __L = "__L",
+    __R = "__R",
+    D_R = "D_R",
+    D_L = "D_L",
+    U_R = "U_R",
+    U_L = "U_L",
+    R_U = "R_U",
+    R_D = "R_D",
+    L_U = "L_U",
+    L_D = "L_D",
+}
+
 //top right 5
 //top left 6
 //bottom left 3
@@ -83,27 +114,102 @@ export function load_Tile(tt: Tile_Type): Tile_Group {
 //20 x 20
 //prettier-ignore
 export const PATH_0 = [
-    [0, 0, 2, 0, 0,      0, 0, 0, 0, 0,      0, 0, 0, 0, 0,      0, 0, 0, 0, 0],
-    [0, 0, 2, 0, 0,      0, 0, 0, 0, 0,      0, 0, 0, 0, 0,      0, 0, 0, 0, 0],
-    [0, 0, 2, 0, 0,      0, 0, 0, 0, 6,      1, 1, 1, 5, 0,      0, 0, 0, 0, 0],
-    [0, 0, 2, 0, 0,      0, 0, 0, 0, 2,      0, 0, 0, 2, 0,      0, 0, 0, 0, 0],
-    [0, 0, 3, 1, 1,      1, 1, 1, 1, 4,      0, 0, 0, 3, 1,      1, 1, 5, 0, 0],
+    [___, ___, __D, ___, ___,   ___, ___, ___, ___, ___,   ___, ___, ___, ___, ___,   ___, ___, ___, ___, ___],
+    [___, ___, __D, ___, ___,   ___, ___, ___, ___, ___,   ___, ___, ___, ___, ___,   ___, ___, ___, ___, ___],
+    [___, ___, __D, ___, ___,   ___, ___, ___, ___, U_R,   __R, __R, __R, R_D, ___,   ___, ___, ___, ___, ___],
+    [___, ___, __D, ___, ___,   ___, ___, ___, ___, __U,   ___, ___, ___, __D, ___,   ___, ___, ___, ___, ___],
+    [___, ___, D_R, __R, __R,   __R, __R, __R, __R, R_U,   ___, ___, ___, D_R, __R,   __R, __R, R_D, ___, ___],
 
-    [0, 0, 0, 0, 0,      0, 0, 0, 0, 0,      0, 0, 0, 0, 0,      0, 0, 2, 0, 0],
-    [0, 0, 0, 0, 0,      0, 0, 0, 0, 0,      0, 0, 0, 0, 0,      0, 0, 2, 0, 0],
-    [0, 0, 6, 1, 1,      1, 1, 1, 1, 5,      0, 0, 0, 6, 1,      1, 1, 4, 0, 0],
-    [0, 0, 2, 0, 0,      0, 0, 0, 0, 2,      0, 0, 0, 2, 0,      0, 0, 0, 0, 0],
-    [0, 0, 2, 0, 0,      0, 0, 0, 0, 3,      1, 1, 1, 4, 0,      0, 0, 0, 0, 0],
+    [___, ___, ___, ___, ___,   ___, ___, ___, ___, ___,   ___, ___, ___, ___, ___,   ___, ___, __D, ___, ___],
+    [___, ___, ___, ___, ___,   ___, ___, ___, ___, ___,   ___, ___, ___, ___, ___,   ___, ___, __D, ___, ___],
+    [___, ___, L_D, __L, __L,   __L, __L, __L, __L, U_L,   ___, ___, ___, L_D, __L,   __L, __L, D_L, ___, ___],
+    [___, ___, __D, ___, ___,   ___, ___, ___, ___, __U,   ___, ___, ___, __D, ___,   ___, ___, ___, ___, ___],
+    [___, ___, __D, ___, ___,   ___, ___, ___, ___, L_U,   __L, __L, __L, D_L, ___,   ___, ___, ___, ___, ___],
 
-    [0, 0, 2, 0, 0,      0, 0, 0, 0, 0,      0, 0, 0, 0, 0,      0, 0, 0, 0, 0],
-    [0, 0, 2, 0, 0,      6, 1, 1, 1, 1,      1, 1, 1, 1, 1,      1, 1, 5, 0, 0],
-    [0, 0, 2, 0, 0,      2, 0, 0, 0, 0,      0, 0, 0, 0, 0,      0, 0, 2, 0, 0],
-    [0, 0, 2, 0, 0,      2, 0, 0, 0, 6,      1, 1, 1, 1, 1,      5, 0, 2, 0, 0],
-    [0, 0, 2, 0, 0,      2, 0, 0, 0, 2,      0, 0, 0, 0, 0,      2, 0, 2, 0, 0],
+    [___, ___, __D, ___, ___,   ___, ___, ___, ___, ___,   ___, ___, ___, ___, ___,   ___, ___, ___, ___, ___],
+    [___, ___, __D, ___, ___,   U_R, __R, __R, __R, __R,   __R, __R, __R, __R, __R,   __R, __R, R_D, ___, ___],
+    [___, ___, __D, ___, ___,   __U, ___, ___, ___, ___,   ___, ___, ___, ___, ___,   ___, ___, __D, ___, ___],
+    [___, ___, __D, ___, ___,   __U, ___, ___, ___, L_D,   __L, __L, __L, __L, __L,   U_L, ___, __D, ___, ___],
+    [___, ___, __D, ___, ___,   __U, ___, ___, ___, __D,   ___, ___, ___, ___, ___,   __U, ___, __D, ___, ___],
 
-    [0, 0, 2, 0, 0,      2, 0, 0, 0, 2,      0, 0, 0, 0, 0,      2, 0, 2, 0, 0],
-    [0, 0, 3, 1, 1,      4, 0, 0, 0, 2,      0, 0, 6, 1, 1,      4, 0, 2, 0, 0],
-    [0, 0, 0, 0, 0,      0, 0, 0, 0, 2,      0, 0, 2, 0, 0,      0, 0, 2, 0, 0],
-    [0, 0, 0, 0, 0,      0, 0, 0, 0, 2,      0, 0, 2, 0, 0,      0, 0, 2, 0, 0],
-    [0, 0, 6, 1, 1,      1, 1, 1, 1, 4,      0, 0, 3, 1, 1,      1, 1, 4, 0, 0],
+    [___, ___, __D, ___, ___,   __U, ___, ___, ___, __D,   ___, ___, ___, ___, ___,   __U, ___, __D, ___, ___],
+    [___, ___, D_R, __R, __R,   R_U, ___, ___, ___, __D,   ___, ___, U_R, __R, __R,   R_U, ___, __D, ___, ___],
+    [___, ___, ___, ___, ___,   ___, ___, ___, ___, __D,   ___, ___, __U, ___, ___,   ___, ___, __D, ___, ___],
+    [___, ___, ___, ___, ___,   ___, ___, ___, ___, __D,   ___, ___, __U, ___, ___,   ___, ___, __D, ___, ___],
+    [___, ___, L_D, __L, __L,   __L, __L, __L, __L, D_L,   ___, ___, L_U, __L, __L,   __L, __L, D_L, ___, ___],
 ];
+
+export function PathValueToTileNumber(path_value: string): number {
+    switch (path_value) {
+        case PathValue.___:
+            return 0;
+        case PathValue.__D:
+            return 2;
+        case PathValue.__U:
+            return 2;
+        case PathValue.__L:
+            return 1;
+        case PathValue.__R:
+            return 1;
+        case PathValue.D_R:
+            return 3;
+        case PathValue.D_L:
+            return 4;
+        case PathValue.U_R:
+            return 6;
+        case PathValue.U_L:
+            return 5;
+        case PathValue.R_U:
+            return 4;
+        case PathValue.R_D:
+            return 5;
+        case PathValue.L_U:
+            return 3;
+        case PathValue.L_D:
+            return 6;
+    }
+    return 99;
+}
+
+export function GetAllWayPoints(pos_x: number, pos_z: number): THREE.Vector3[] {
+    const HALF = PATH_0.length / 2;
+    const way_points: THREE.Vector3[] = [];
+    let collect_waypoints = false;
+    let z = -1;
+    let x = 0;
+    for (let z0 = 0; z0 < PATH_0[0].length; z0++) {
+        if (PATH_0[0][z0] !== PathValue.___) z = z0;
+    }
+
+    for (;;) {
+        if (x === pos_x && z === pos_z) collect_waypoints = true;
+        const v = PATH_0[x][z];
+
+        if (collect_waypoints) {
+            if (v[0] !== "_") {
+                let real_z = HALF - z - 1;
+                if (z > HALF) real_z = -(z - HALF + 1);
+                way_points.push(new THREE.Vector3(x, 0, real_z));
+            }
+        }
+
+        const dir = v[2];
+        switch (dir) {
+            case "U":
+                x--;
+                break;
+            case "D":
+                x++;
+                break;
+            case "R":
+                z++;
+                break;
+            case "L":
+                z--;
+                break;
+        }
+        if (PATH_0[x] === undefined) break;
+        if (PATH_0[x][z] === undefined) break;
+    }
+    return way_points;
+}
