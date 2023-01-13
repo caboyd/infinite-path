@@ -12,8 +12,8 @@ import { PATH_0 } from "./TileData";
 let last_x = 0;
 
 const tile_center = new THREE.Vector3(0, 5, 0);
-const max = 6;
-const min = 11;
+const max = 11;
+const min = 7;
 
 export const MAX_TILE_TYPES = max + 1;
 let tiles: number[][] = [];
@@ -44,16 +44,7 @@ export const Tiles = ({
         resetGlobalInstances();
         tiles = new Array(tile_dimensions).fill(0).map(() => Array.from({ length: tile_dimensions }, () => 99));
         for (const row of tiles) {
-            const middle = Math.floor(row.length / 2);
-            const path_half_size = path.length / 2;
-            for (let z = 0; z < row.length; z++) {
-                row[z] = Math.floor(Math.random() * (max - min + 1) + min);
-                if (z >= middle - path_half_size && z < middle + path_half_size) {
-                    const reverse_index = (path_half_size*2-1) - (z - middle + path_half_size)
-                    row[z] = path[path_row][reverse_index];
-                }
-            }
-            nextPathRow();
+            fillRow(row);
         }
     }
 
@@ -75,18 +66,8 @@ export const Tiles = ({
         tiles.push(new Array(tile_dimensions));
         const row = tiles[tiles.length - 1];
 
-        for (let z = 0; z < tile_dimensions; z++) {
-            row[z] = Math.floor(Math.random() * (max - min + 1) + min);
-            const middle = Math.floor(row.length / 2);
-            const path_half_size = path.length / 2;
-
-            if (z >= middle - path_half_size && z < middle + path_half_size) {
-                const reverse_index = (path_half_size*2-1) - (z - middle + path_half_size)
-                row[z] = path[path_row][reverse_index];
-            }
-        }
-
-        nextPathRow();
+        fillRow(row);
+        
         setChanged(!changed);
     });
 
@@ -103,3 +84,15 @@ export const Tiles = ({
         </group>
     );
 };
+function fillRow(row: number[]) {
+    const middle = Math.floor(row.length / 2);
+    const path_half_size = path.length / 2;
+    for (let z = 0; z < row.length; z++) {
+        row[z] = Math.floor(Math.random() * (max - min + 1) + min);
+        if (z >= middle - path_half_size && z < middle + path_half_size) {
+            const reverse_index = path_half_size * 2 - 1 - (z - middle + path_half_size);
+            row[z] = path[path_row][reverse_index];
+        }
+    }
+    nextPathRow();
+}

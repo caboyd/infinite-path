@@ -20,9 +20,9 @@ export const tile_data: Tiles_Type = {
         tile_rotation_y: [0, Math.PI / 2, (2 * Math.PI) / 2, (3 * Math.PI) / 2],
     },
 
-   // tile_rock: { name: "tile_rock", valid_tile_types: [8] },
+    // tile_rock: { name: "tile_rock", valid_tile_types: [8] },
     tile_tree: { name: "tile_tree", valid_tile_types: [8] },
-    tile_treeDouble: { name: "tile_treeDouble", valid_tile_types: [9,10] },
+    tile_treeDouble: { name: "tile_treeDouble", valid_tile_types: [9, 10] },
     tile_treeQuad: { name: "tile_treeQuad", valid_tile_types: [11] },
     tile_hill: { name: "tile_hill", valid_tile_types: [12] },
 };

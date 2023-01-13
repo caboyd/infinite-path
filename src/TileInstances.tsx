@@ -6,9 +6,8 @@ import { getTile_Type, load_Tile, Tile_Instances, Tile_Type } from "./TileData";
 const global_instances: Tile_Instances = {};
 function getTileInstance(child: THREE.Mesh): THREE.InstancedMesh {
     if (!global_instances[child.name]) {
-        let max_instances = TILE_DIM * TILE_DIM;
-        //if (child.name.includes("straight")) max_instances *= 2;
-        if (child.name.includes("tree")) max_instances *= 4;
+        let max_instances = (TILE_DIM * TILE_DIM) / 2;
+        if (child.name.includes("tree")) max_instances *= 6;
         const instance = new THREE.InstancedMesh(child.geometry, child.material, max_instances);
         global_instances[child.name] = instance;
         instance.count = 0;
@@ -139,12 +138,15 @@ export function TileInstances({
     }
 
     useFrame(() => {
+        const max_per_frame = 2;
+        let per_frame = 0;
         for (let i = 0; i < instance_needs_update.length; i++) {
             if (instance_needs_update[i] == true) {
-                //only send one to gpu at a time
+                per_frame++;
+                //only max_per_frame to gpu at a time
                 global_instances_arr[i].instanceMatrix.needsUpdate = true;
                 instance_needs_update[i] = false;
-                break;
+                if (per_frame === max_per_frame) break;
             }
         }
     });
