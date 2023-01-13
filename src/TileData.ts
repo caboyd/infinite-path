@@ -8,14 +8,24 @@ export type Tile_Instances = {
 };
 
 export const tile_data: Tiles_Type = {
-    tile: { name: "tile", valid_tile_types: [0] },
-    tile_straight: { name: "tile_straight", valid_tile_types: [1, 2], tile_rotation_y: [0, Math.PI / 2] },
-    tile_rock: { name: "tile_rock", valid_tile_types: [3] },
-    tile_tree: { name: "tile_tree", valid_tile_types: [4] },
-    tile_treeDouble: { name: "tile_treeDouble", valid_tile_types: [5] },
-    tile_treeQuad: { name: "tile_treeQuad", valid_tile_types: [6] },
-    tile_hill: { name: "tile_hill", valid_tile_types: [7] },
-} as const;
+    tile: { name: "tile", valid_tile_types: [0, 7] },
+    tile_straight: {
+        name: "tile_straight",
+        valid_tile_types: [1, 2],
+        tile_rotation_y: [0, Math.PI / 2],
+    },
+    tile_cornerSquare: {
+        name: "tile_cornerSquare",
+        valid_tile_types: [3, 4, 5, 6],
+        tile_rotation_y: [0, Math.PI / 2, (2 * Math.PI) / 2, (3 * Math.PI) / 2],
+    },
+
+   // tile_rock: { name: "tile_rock", valid_tile_types: [8] },
+    tile_tree: { name: "tile_tree", valid_tile_types: [8] },
+    tile_treeDouble: { name: "tile_treeDouble", valid_tile_types: [9,10] },
+    tile_treeQuad: { name: "tile_treeQuad", valid_tile_types: [11] },
+    tile_hill: { name: "tile_hill", valid_tile_types: [12] },
+};
 
 const valid_tile_types_data = (() => {
     const result: Record<number, Tile_Type> = {};
@@ -64,3 +74,36 @@ export function load_Tile(tt: Tile_Type): Tile_Group {
         tile_group_cache[tt.name] = (useGLTF(url + tt.name + ".glb") as unknown as Tile_GLTF).nodes[tt.name];
     return tile_group_cache[tt.name];
 }
+
+//top right 5
+//top left 6
+//bottom left 3
+//bottom right 4
+
+//20 x 20
+//prettier-ignore
+export const PATH_0 = [
+    [0, 0, 2, 0, 0,      0, 0, 0, 0, 0,      0, 0, 0, 0, 0,      0, 0, 0, 0, 0],
+    [0, 0, 2, 0, 0,      0, 0, 0, 0, 0,      0, 0, 0, 0, 0,      0, 0, 0, 0, 0],
+    [0, 0, 2, 0, 0,      0, 0, 0, 0, 6,      1, 1, 1, 5, 0,      0, 0, 0, 0, 0],
+    [0, 0, 2, 0, 0,      0, 0, 0, 0, 2,      0, 0, 0, 2, 0,      0, 0, 0, 0, 0],
+    [0, 0, 3, 1, 1,      1, 1, 1, 1, 4,      0, 0, 0, 3, 1,      1, 1, 5, 0, 0],
+
+    [0, 0, 0, 0, 0,      0, 0, 0, 0, 0,      0, 0, 0, 0, 0,      0, 0, 2, 0, 0],
+    [0, 0, 0, 0, 0,      0, 0, 0, 0, 0,      0, 0, 0, 0, 0,      0, 0, 2, 0, 0],
+    [0, 0, 6, 1, 1,      1, 1, 1, 1, 5,      0, 0, 0, 6, 1,      1, 1, 4, 0, 0],
+    [0, 0, 2, 0, 0,      0, 0, 0, 0, 2,      0, 0, 0, 2, 0,      0, 0, 0, 0, 0],
+    [0, 0, 2, 0, 0,      0, 0, 0, 0, 3,      1, 1, 1, 4, 0,      0, 0, 0, 0, 0],
+
+    [0, 0, 2, 0, 0,      0, 0, 0, 0, 0,      0, 0, 0, 0, 0,      0, 0, 0, 0, 0],
+    [0, 0, 2, 0, 0,      6, 1, 1, 1, 1,      1, 1, 1, 1, 1,      1, 1, 5, 0, 0],
+    [0, 0, 2, 0, 0,      2, 0, 0, 0, 0,      0, 0, 0, 0, 0,      0, 0, 2, 0, 0],
+    [0, 0, 2, 0, 0,      2, 0, 0, 0, 6,      1, 1, 1, 1, 1,      5, 0, 2, 0, 0],
+    [0, 0, 2, 0, 0,      2, 0, 0, 0, 2,      0, 0, 0, 0, 0,      2, 0, 2, 0, 0],
+
+    [0, 0, 2, 0, 0,      2, 0, 0, 0, 2,      0, 0, 0, 0, 0,      2, 0, 2, 0, 0],
+    [0, 0, 3, 1, 1,      4, 0, 0, 0, 2,      0, 0, 6, 1, 1,      4, 0, 2, 0, 0],
+    [0, 0, 0, 0, 0,      0, 0, 0, 0, 2,      0, 0, 2, 0, 0,      0, 0, 2, 0, 0],
+    [0, 0, 0, 0, 0,      0, 0, 0, 0, 2,      0, 0, 2, 0, 0,      0, 0, 2, 0, 0],
+    [0, 0, 6, 1, 1,      1, 1, 1, 1, 4,      0, 0, 3, 1, 1,      1, 1, 4, 0, 0],
+];
