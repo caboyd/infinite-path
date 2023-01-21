@@ -41,7 +41,7 @@ const Scene = () => {
 };
 
 const App = () => {
-    ({ tile_dimensions } = useControls({ tile_dimensions: { value: 40, min: 1, max: 600, step: 2 } }));
+    ({ tile_dimensions } = useControls({ tile_dimensions: { value: 40, min: 40, max: 200, step: 2 } }));
     return (
         <Canvas camera={{ fov: 70, position: [-5, 10, 0] }} shadows={"soft"}>
             <Perf position="top-left" />

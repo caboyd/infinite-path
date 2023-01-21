@@ -139,6 +139,10 @@ export const PATH_0 = [
     [___, ___, L_D, __L, __L,   __L, __L, __L, __L, D_L,   ___, ___, L_U, __L, __L,   __L, __L, D_L, ___, ___],
 ];
 
+export function PathValueisPath(path_value: string): boolean {
+    return path_value !== PathValue.___;
+}
+
 export function PathValueToTileNumber(path_value: string): number {
     switch (path_value) {
         case PathValue.___:
@@ -171,6 +175,13 @@ export function PathValueToTileNumber(path_value: string): number {
     return 99;
 }
 
+export function PathPosToWorldPos(z: number): number {
+    const HALF = PATH_0.length / 2;
+    let world_z = HALF - z - 1;
+    if (z > HALF) world_z = -(z - HALF + 1);
+    return world_z;
+}
+
 export function GetAllWayPoints(pos_x: number, pos_z: number): THREE.Vector3[] {
     const HALF = PATH_0.length / 2;
     const way_points: THREE.Vector3[] = [];
@@ -187,9 +198,7 @@ export function GetAllWayPoints(pos_x: number, pos_z: number): THREE.Vector3[] {
 
         if (collect_waypoints) {
             if (v[0] !== "_") {
-                let real_z = HALF - z - 1;
-                if (z > HALF) real_z = -(z - HALF + 1);
-                way_points.push(new THREE.Vector3(x, 0, real_z));
+                way_points.push(new THREE.Vector3(x, 0, PathPosToWorldPos(z)));
             }
         }
 

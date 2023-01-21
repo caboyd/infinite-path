@@ -58,7 +58,7 @@ async function addTileGroupInstances(
         for (const child of group.children) {
             if (child instanceof THREE.Mesh) {
                 const instance = getTileInstance(child);
-                if (instance.count == instance.instanceMatrix.count) {
+                if (instance.count > instance.instanceMatrix.count) {
                     console.warn(`too many instances for ${instance.name}`);
                     continue;
                 }
@@ -98,8 +98,7 @@ async function addTileGroupInstances(
                 array[offset + 11] = 0;
                 array[offset + 15] = 1;
                 instance.count++;
-            }
-            if (child instanceof THREE.Group) {
+            } else if (child instanceof THREE.Group) {
                 addTileGroupInstancesRecurse(
                     child,
                     child.position.x + pos_x,

@@ -46,6 +46,7 @@ export const Tiles = ({
     if (tiles.length != tile_dimensions) {
         resetGlobalInstances();
         tiles = new Array(tile_dimensions).fill(0).map(() => Array.from({ length: tile_dimensions }, () => 99));
+        path_row = 0;
         for (const row of tiles) {
             fillRow(row);
         }
