@@ -23,6 +23,7 @@ class Enemy extends THREE.Mesh {
     way_points: WayPoint[] = [];
     speed = 0.5;
     dir: THREE.Vector3 = new THREE.Vector3();
+    marked_for_delete = false;
 
     constructor(grid_start_x: number, world_start_z: number, world_start_x: number) {
         super(geo, mat);
@@ -52,6 +53,11 @@ class Enemy extends THREE.Mesh {
         ) {
             this.way_points.shift();
             if (this.way_points.length == 0) {
+                //delete out of bounds enemies that have reached last waypoint because the newly spanwed one will overlap them
+                if (this.position.x > last_tile_center.x + last_tile_dimensions / 2) {
+                    this.marked_for_delete = true;
+                }
+
                 this.addWayPoints(GetAllWayPoints(0, 2));
                 this.world_start_x += 20;
             }
@@ -61,6 +67,13 @@ class Enemy extends THREE.Mesh {
 }
 
 let last_tile_dimensions = 0;
+let last_tile_center = new THREE.Vector3();
+let tile_center_x_of_last_spawn = 0;
+
+//The amount to offset the grid so enemy spawns line up properly
+//offset happens when grid size is changed
+let tile_center_x_grid_offset = 20;
+
 export function Enemies({
     tile_center,
     latest_row,
@@ -74,19 +87,41 @@ export function Enemies({
         global_enemies.length = 0;
         const offset = (tile_dimensions / 2) % path.length;
         const extra_paths = -Math.floor(tile_dimensions / (path.length * 2)) * path.length;
-        //console.log(offset);
-        // const e = new Enemy(offset, 7, offset);
-        // const wp = GetAllWayPoints(0, 2);
-        // e.addWayPoints(wp);
-        // global_enemies.push(e);
         first_render = false;
+        tile_center_x_grid_offset = 20 - (tile_center.x % 20);
 
-        for (let i = 0; i < tile_dimensions; i++) {
+        for (let i = 0; i < tile_dimensions + 20 - (tile_center.x % 20); i++) {
             let grid_start_x = tile_center.x - offset + extra_paths;
             const world_start_x = grid_start_x + i;
             grid_start_x += path.length * Math.floor(i / path.length);
             const path_index = Math.abs(i % path.length);
-            //const e = new Enemy(offset2, 7, offset2);
+            //find all z values where path exists in row
+            const row = path[path_index];
+            for (let z = 0; z < row.length; z++) {
+                if (PathValueisPath(row[z])) {
+                    const e = new Enemy(world_start_x, PathPosToWorldPos(z), grid_start_x);
+                    const wp = GetAllWayPoints(path_index, z);
+                    if (wp.length === 0) {
+                        throw "bad path pos";
+                    }
+                    e.addWayPoints(wp);
+                    global_enemies.push(e);
+                }
+            }
+        }
+    }
+    //console.log(tile_center.x, tile_center_x_grid_offset + tile_center.x);
+    const make_new_enemies = (tile_center_x_grid_offset + tile_center.x) % 20 == 0;
+    if (!first_render && tile_center_x_of_last_spawn !== tile_center.x && make_new_enemies) {
+        const offset = (tile_dimensions / 2) % path.length;
+        const extra_paths = -Math.floor(tile_dimensions / (path.length * 2)) * path.length;
+        tile_center_x_of_last_spawn = tile_center.x;
+
+        for (let i = tile_dimensions; i < Math.ceil(tile_dimensions + 20); i++) {
+            let grid_start_x = tile_center.x - offset + extra_paths;
+            const world_start_x = grid_start_x + i;
+            grid_start_x += path.length * Math.floor(i / path.length);
+            const path_index = Math.abs(i % path.length);
             //find all z values where path exists in row
             const row = path[path_index];
             for (let z = 0; z < row.length; z++) {
@@ -104,16 +139,20 @@ export function Enemies({
     }
 
     last_tile_dimensions = tile_dimensions;
+    last_tile_center = tile_center;
 
     useFrame((state, delta) => {
+        delta = Math.min(delta, 5 / 60);
         for (let i = 0; i < global_enemies.length; i++) {
             const e = global_enemies[i];
             e.update(delta);
             if (
-                e.position.x < tile_center.x - tile_dimensions / 2 ||
-                e.position.x > tile_center.x + tile_dimensions / 2
+                e.marked_for_delete ||
+                e.position.x < tile_center.x - tile_dimensions / 2 - 0.5 ||
+                e.position.x > tile_center.x + tile_dimensions
             ) {
                 global_enemies.splice(i, 1);
+                e.visible = false;
             }
         }
     });

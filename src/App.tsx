@@ -8,6 +8,7 @@ import { useControls } from "leva";
 import { Tiles } from "./Tiles";
 
 export let tile_dimensions: number;
+export let camera_speed: number;
 
 const Scene = () => {
     const orbit_ref = useRef<OrbitControls>(null!);
@@ -24,7 +25,7 @@ const Scene = () => {
 
     return (
         <>
-            <Tiles tile_dimensions={tile_dimensions} orbit_ref={orbit_ref} light_ref={light_ref} />
+            <Tiles camera_speed={camera_speed} tile_dimensions={tile_dimensions} orbit_ref={orbit_ref} light_ref={light_ref} />
             <ambientLight color={[1, 1, 1]} intensity={0.2} />
             <directionalLight
                 ref={light_ref}
@@ -41,7 +42,8 @@ const Scene = () => {
 };
 
 const App = () => {
-    ({ tile_dimensions } = useControls({ tile_dimensions: { value: 40, min: 40, max: 200, step: 2 } }));
+    ({ tile_dimensions } = useControls({ tile_dimensions: { value: 40, min: 40, max: 200, step: 20 } }));
+    ({ camera_speed } = useControls({ camera_speed: { value: 1, min: 0.5, max: 10, step: 0.5 } }));
     return (
         <Canvas camera={{ fov: 70, position: [-5, 10, 0] }} shadows={"soft"}>
             <Perf position="top-left" />

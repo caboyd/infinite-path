@@ -7,6 +7,7 @@ import { OrbitControls } from "three-stdlib";
 import { resetGlobalInstances, TileInstances } from "./TileInstances";
 import { PathValueToTileNumber, PATH_0 } from "./TileData";
 import { Enemies } from "./Enemies";
+import { camera_speed } from "./App";
 
 //export const TILE_DIM = 60 as const;
 
@@ -32,11 +33,13 @@ const nextPathRow = () => {
 export const Tiles = ({
     props,
     tile_dimensions,
+    camera_speed,
     orbit_ref,
     light_ref,
 }: {
     props?: JSX.IntrinsicElements["group"];
     tile_dimensions: number;
+    camera_speed: number;
     orbit_ref: React.MutableRefObject<OrbitControls>;
     light_ref: React.MutableRefObject<DirectionalLight>;
 }) => {
@@ -54,6 +57,7 @@ export const Tiles = ({
 
     useFrame((state, delta) => {
         delta = Math.min(delta, 5 / 60);
+        delta *= camera_speed;
         tile_center.x += delta;
         orbit_ref.current.object.position.x += delta;
         orbit_ref.current.target.copy(tile_center);
