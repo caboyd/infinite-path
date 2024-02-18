@@ -7,7 +7,6 @@ import { OrbitControls } from "three-stdlib";
 import { resetGlobalInstances, TileInstances } from "./TileInstances";
 import { PathValueToTileNumber, PATH_0 } from "./TileData";
 import { Enemies } from "./Enemies";
-import { camera_speed } from "./App";
 
 //export const TILE_DIM = 60 as const;
 

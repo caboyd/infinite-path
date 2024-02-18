@@ -1,11 +1,14 @@
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { GetAllWayPoints, PathPosToWorldPos, PathValueisPath, PATH_0 } from "./TileData";
+import { Mushnubs } from "./Mushnub";
+import { useRef } from "react";
 
 const geo = new THREE.SphereGeometry(0.25, 16, 16);
 const mat = new THREE.MeshStandardMaterial({ color: "white" });
 
 const global_enemies: Enemy[] = [];
+
 const path = PATH_0;
 
 let first_render = true;
@@ -18,6 +21,8 @@ function vec2sqrDist(a_x: number, a_y: number, b_x: number, b_y: number) {
     return x * x + y * y;
 }
 
+let positions:THREE.Vector3[] = [];
+
 class Enemy extends THREE.Mesh {
     world_start_x: number;
     way_points: WayPoint[] = [];
@@ -27,7 +32,7 @@ class Enemy extends THREE.Mesh {
 
     constructor(grid_start_x: number, world_start_z: number, world_start_x: number) {
         super(geo, mat);
-        this.position.set(grid_start_x, 5.25, world_start_z);
+        this.position.set(grid_start_x, 5.10, world_start_z);
         this.world_start_x = world_start_x;
     }
 
@@ -57,7 +62,6 @@ class Enemy extends THREE.Mesh {
                 if (this.position.x > last_tile_center.x + last_tile_dimensions / 2) {
                     this.marked_for_delete = true;
                 }
-
                 this.addWayPoints(GetAllWayPoints(0, 2));
                 this.world_start_x += 20;
             }
@@ -83,8 +87,11 @@ export function Enemies({
     latest_row: string[];
     tile_dimensions: number;
 }) {
+    const enemiesRef = useRef<Array<THREE.Group | null>>([]);
+
     if (first_render || last_tile_dimensions !== tile_dimensions) {
         global_enemies.length = 0;
+
         const offset = (tile_dimensions / 2) % path.length;
         const extra_paths = -Math.floor(tile_dimensions / (path.length * 2)) * path.length;
         first_render = false;
@@ -143,9 +150,12 @@ export function Enemies({
 
     useFrame((state, delta) => {
         delta = Math.min(delta, 5 / 60);
+        positions = []
         for (let i = 0; i < global_enemies.length; i++) {
             const e = global_enemies[i];
+            
             e.update(delta);
+      
             if (
                 e.marked_for_delete ||
                 e.position.x < tile_center.x - tile_dimensions / 2 - 0.5 ||
@@ -154,14 +164,17 @@ export function Enemies({
                 global_enemies.splice(i, 1);
                 e.visible = false;
             }
+            positions.push(e.position)
+            
         }
     });
 
     return (
         <group>
-            {global_enemies.map((mesh) => (
+            {/* {global_enemies.map((mesh) => (
                 <primitive object={mesh} key={mesh.id}></primitive>
-            ))}
+            ))} */}
+            <Mushnubs positions={positions}/>
         </group>
     );
 }
