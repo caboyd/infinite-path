@@ -26,12 +26,13 @@ interface MushnubsProps {
 
 export function Mushnubs(props: MushnubsProps) {
     const { nodes, materials } = useGLTF("assets/ultimate-monsters/Mushnub.gltf");
+    //@ts-ignore
     materials.Atlas.envMapIntensity = 0.5;
 
     return (
         <group>
-            <Instances
-                geometry={nodes.Mushnub_Blob.geometry}
+            {/* @ts-ignore */}
+            <Instances  geometry={nodes.Mushnub_Blob.geometry}
                 range={props.enemies.length}
                 material={materials.Atlas}
                 castShadow

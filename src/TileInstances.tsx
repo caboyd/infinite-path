@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { tile_dimensions as TILE_DIM } from "./App";
@@ -14,6 +15,7 @@ function getTileInstance(child: THREE.Mesh): THREE.InstancedMesh {
         instance.name = child.name;
         instance.receiveShadow = true;
         instance.castShadow = true;
+        //@ts-ignore
         instance.material.envMapIntensity = 0.1;
     }
     return global_instances[child.name];
