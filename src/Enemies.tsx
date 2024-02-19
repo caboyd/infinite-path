@@ -21,18 +21,22 @@ function vec2sqrDist(a_x: number, a_y: number, b_x: number, b_y: number) {
     return x * x + y * y;
 }
 
-let positions:THREE.Vector3[] = [];
+function lerp(v0: number, v1: number, t: number) {
+    return v0 * (1 - t) + v1 * t;
+}
 
-class Enemy extends THREE.Mesh {
+export class Enemy extends THREE.Object3D {
     world_start_x: number;
     way_points: WayPoint[] = [];
     speed = 0.5;
     dir: THREE.Vector3 = new THREE.Vector3();
+    velocity: THREE.Vector3 = new THREE.Vector3();
+    current_dir: THREE.Vector3 = new THREE.Vector3(1, 0, 0);
     marked_for_delete = false;
 
     constructor(grid_start_x: number, world_start_z: number, world_start_x: number) {
-        super(geo, mat);
-        this.position.set(grid_start_x, 5.10, world_start_z);
+        super();
+        this.position.set(grid_start_x, 5.1, world_start_z);
         this.world_start_x = world_start_x;
     }
 
@@ -46,7 +50,17 @@ class Enemy extends THREE.Mesh {
         this.dir.sub(this.position);
         this.dir.y = 0;
         this.dir.normalize();
-        this.position.add(this.dir.multiplyScalar(delta_s * this.speed));
+
+        this.velocity.copy(this.dir);
+        this.velocity.multiplyScalar(delta_s * this.speed);
+        this.position.add(this.velocity);
+
+        //fix rotation
+        this.current_dir.lerp(this.dir, 0.04);
+        const angle = Math.atan2(this.current_dir.x, this.current_dir.z);
+
+        this.rotation.y = angle;
+
         //if at waypoint remove it and look at next waypoint
         if (
             vec2sqrDist(
@@ -65,7 +79,7 @@ class Enemy extends THREE.Mesh {
                 this.addWayPoints(GetAllWayPoints(0, 2));
                 this.world_start_x += 20;
             }
-            this.lookAt(this.way_points[0]);
+            //this.lookAt(this.way_points[0]);
         }
     }
 }
@@ -123,7 +137,7 @@ export function Enemies({
         const offset = (tile_dimensions / 2) % path.length;
         const extra_paths = -Math.floor(tile_dimensions / (path.length * 2)) * path.length;
         tile_center_x_of_last_spawn = tile_center.x;
-
+        let enemies_added = 0;
         for (let i = tile_dimensions; i < Math.ceil(tile_dimensions + 20); i++) {
             let grid_start_x = tile_center.x - offset + extra_paths;
             const world_start_x = grid_start_x + i;
@@ -140,7 +154,16 @@ export function Enemies({
                     }
                     e.addWayPoints(wp);
                     global_enemies.push(e);
+                    enemies_added++;
                 }
+            }
+        }
+
+        for (let i = 0; i < global_enemies.length; i++) {
+            const e = global_enemies[i];
+            if (e.position.x >= tile_center.x - tile_dimensions / 2 - 0.5) {
+                global_enemies.splice(0, i - 1);
+                break;
             }
         }
     }
@@ -150,22 +173,13 @@ export function Enemies({
 
     useFrame((state, delta) => {
         delta = Math.min(delta, 5 / 60);
-        positions = []
         for (let i = 0; i < global_enemies.length; i++) {
             const e = global_enemies[i];
-            
             e.update(delta);
-      
-            if (
-                e.marked_for_delete ||
-                e.position.x < tile_center.x - tile_dimensions / 2 - 0.5 ||
-                e.position.x > tile_center.x + tile_dimensions
-            ) {
+            if (e.marked_for_delete) {
                 global_enemies.splice(i, 1);
                 e.visible = false;
             }
-            positions.push(e.position)
-            
         }
     });
 
@@ -174,7 +188,7 @@ export function Enemies({
             {/* {global_enemies.map((mesh) => (
                 <primitive object={mesh} key={mesh.id}></primitive>
             ))} */}
-            <Mushnubs positions={positions}/>
+            <Mushnubs enemies={global_enemies} />
         </group>
     );
 }

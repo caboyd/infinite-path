@@ -14,6 +14,7 @@ function getTileInstance(child: THREE.Mesh): THREE.InstancedMesh {
         instance.name = child.name;
         instance.receiveShadow = true;
         instance.castShadow = true;
+        instance.material.envMapIntensity = 0.1;
     }
     return global_instances[child.name];
 }

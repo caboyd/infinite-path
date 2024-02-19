@@ -1,11 +1,13 @@
-import { OrbitControls as OrbitControlsComponent, Stats } from "@react-three/drei";
+import { OrbitControls as OrbitControlsComponent, Environment } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Perf } from "r3f-perf";
-import { Suspense, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { DirectionalLight } from "three";
 import { OrbitControls } from "three-stdlib";
 import { useControls } from "leva";
 import { Tiles } from "./Tiles";
+
+import * as THREE from "three";
 
 export let tile_dimensions: number;
 export let camera_speed: number;
@@ -25,11 +27,18 @@ const Scene = () => {
 
     return (
         <>
-            <Tiles camera_speed={camera_speed} tile_dimensions={tile_dimensions} orbit_ref={orbit_ref} light_ref={light_ref} />
-            <ambientLight color={[1, 1, 1]} intensity={0.2} />
+            <Tiles
+                camera_speed={camera_speed}
+                tile_dimensions={tile_dimensions}
+                orbit_ref={orbit_ref}
+                light_ref={light_ref}
+            />
+            <ambientLight color={[1, 1, 1]} intensity={0.0} />
             <directionalLight
                 ref={light_ref}
                 position={[1, 1, 0.5]}
+                color={new THREE.Color(255 / 255, 214 / 255, 224 / 255)}
+                intensity={1.6}
                 castShadow={true}
                 shadow-mapSize={2048}
                 shadow-bias={-0.0018}
@@ -37,6 +46,7 @@ const Scene = () => {
                 <orthographicCamera attach="shadow-camera" args={shadow_dim_args} />
             </directionalLight>
             <OrbitControlsComponent ref={orbit_ref} />
+            <Environment preset="forest" background />
         </>
     );
 };
@@ -44,6 +54,7 @@ const Scene = () => {
 const App = () => {
     ({ tile_dimensions } = useControls({ tile_dimensions: { value: 40, min: 40, max: 200, step: 20 } }));
     ({ camera_speed } = useControls({ camera_speed: { value: 1, min: 0.5, max: 10, step: 0.5 } }));
+
     return (
         <Canvas camera={{ fov: 70, position: [-5, 10, 0] }} shadows={"soft"}>
             <Perf position="top-left" />
