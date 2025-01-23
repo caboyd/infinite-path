@@ -36,17 +36,18 @@ const Scene = () => {
             <ambientLight color={[1, 1, 1]} intensity={0.0} />
             <directionalLight
                 ref={light_ref}
-                position={[1, 1, 0.5]}
+                position={[0.1, 2.4, 0.1]}
                 color={new THREE.Color(255 / 255, 214 / 255, 224 / 255)}
-                intensity={1.6}
+                intensity={2.0}
                 castShadow={true}
                 shadow-mapSize={2048}
                 shadow-bias={-0.0018}
+                shadow-intensity={3.0}
             >
                 <orthographicCamera attach="shadow-camera" args={shadow_dim_args} />
             </directionalLight>
             <OrbitControlsComponent ref={orbit_ref} />
-            <Environment preset="forest" background />
+            <Environment preset="forest" background environmentIntensity={0.9} />
         </>
     );
 };

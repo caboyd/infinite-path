@@ -38,6 +38,7 @@ export class Enemy extends THREE.Object3D {
         super();
         this.position.set(grid_start_x, 5.1, world_start_z);
         this.world_start_x = world_start_x;
+        this.frustumCulled = false;
     }
 
     addWayPoints(way_points: WayPoint[]) {
