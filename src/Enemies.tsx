@@ -1,13 +1,20 @@
 import { useFrame } from "@react-three/fiber";
+import { useControls } from "leva";
 import * as THREE from "three";
-import { GetAllWayPoints, PathPosToWorldPos, PathValueisPath, PATH_0 } from "./TileData";
-import { Mushnubs } from "./Mushnub";
-import { useRef } from "react";
+import { EnemyInstances, EnemyModelType, EnemyModelTypes } from "./EnemyModels";
+import { GetAllWayPoints, PATH_0, PathPosToWorldPos, PathValueisPath } from "./TileData";
 
-const geo = new THREE.SphereGeometry(0.25, 16, 16);
-const mat = new THREE.MeshStandardMaterial({ color: "white" });
+let enemy_speed: number;
 
 const global_enemies: Enemy[] = [];
+const global_enemy_ranges = Object.fromEntries(EnemyModelTypes.map((o) => [o, 0]));
+
+let cur_model = -1;
+function getNextEnemyModelType() {
+    cur_model += 1;
+    if (cur_model >= EnemyModelTypes.length) cur_model = 0;
+    return EnemyModelTypes[cur_model];
+}
 
 const path = PATH_0;
 
@@ -33,12 +40,16 @@ export class Enemy extends THREE.Object3D {
     velocity: THREE.Vector3 = new THREE.Vector3();
     current_dir: THREE.Vector3 = new THREE.Vector3(1, 0, 0);
     marked_for_delete = false;
+    enemy_type: EnemyModelType;
+    hovered: boolean = false;
 
-    constructor(grid_start_x: number, world_start_z: number, world_start_x: number) {
+    constructor(enemy_type: EnemyModelType, grid_start_x: number, world_start_z: number, world_start_x: number) {
         super();
         this.position.set(grid_start_x, 5.1, world_start_z);
         this.world_start_x = world_start_x;
         this.frustumCulled = false;
+        this.speed = enemy_speed;
+        this.enemy_type = enemy_type;
     }
 
     addWayPoints(way_points: WayPoint[]) {
@@ -56,11 +67,12 @@ export class Enemy extends THREE.Object3D {
         this.velocity.multiplyScalar(delta_s * this.speed);
         this.position.add(this.velocity);
 
-        //fix rotation
-        this.current_dir.lerp(this.dir, 0.04);
-        const angle = Math.atan2(this.current_dir.x, this.current_dir.z);
-
-        this.rotation.y = angle;
+        //apply lerp rotation only if necessary
+        if (this.current_dir.distanceToSquared(this.dir) > 0.005) {
+            this.current_dir.lerp(this.dir, 0.04);
+            const angle = Math.atan2(this.current_dir.x, this.current_dir.z);
+            this.rotation.y = angle;
+        }
 
         //if at waypoint remove it and look at next waypoint
         if (
@@ -69,7 +81,7 @@ export class Enemy extends THREE.Object3D {
                 this.position.z,
                 this.world_start_x + this.way_points[0].x,
                 this.way_points[0].z
-            ) < 0.01
+            ) < 0.005
         ) {
             this.way_points.shift();
             if (this.way_points.length == 0) {
@@ -93,35 +105,35 @@ let tile_center_x_of_last_spawn = 0;
 //offset happens when grid size is changed
 let tile_center_x_grid_offset = 20;
 
-export function Enemies({
-    tile_center,
-    latest_row,
-    tile_dimensions,
-}: {
-    tile_center: THREE.Vector3;
-    latest_row: string[];
-    tile_dimensions: number;
-}) {
-    const enemiesRef = useRef<Array<THREE.Group | null>>([]);
+export function Enemies({ tile_center, tile_dimensions }: { tile_center: THREE.Vector3, tile_dimensions:number }) {
+    ({ enemy_speed } = useControls({ enemy_speed: { value: 0.5, min: 0.0, max: 2, step: 0.1 } }));
 
     if (first_render || last_tile_dimensions !== tile_dimensions) {
         global_enemies.length = 0;
+        let enemy_model_type = getNextEnemyModelType();
 
         const offset = (tile_dimensions / 2) % path.length;
         const extra_paths = -Math.floor(tile_dimensions / (path.length * 2)) * path.length;
         first_render = false;
         tile_center_x_grid_offset = 20 - (tile_center.x % 20);
+        tile_center_x_of_last_spawn = tile_center.x;
 
-        for (let i = 0; i < tile_dimensions + 20 - (tile_center.x % 20); i++) {
+        const tile_end = tile_dimensions + 20 - (tile_center.x % 20);
+
+        for (let i = 0; i < tile_end; i++) {
             let grid_start_x = tile_center.x - offset + extra_paths;
             const world_start_x = grid_start_x + i;
             grid_start_x += path.length * Math.floor(i / path.length);
             const path_index = Math.abs(i % path.length);
             //find all z values where path exists in row
             const row = path[path_index];
+
+            if (i % 20 == 0) enemy_model_type = getNextEnemyModelType();
+
             for (let z = 0; z < row.length; z++) {
                 if (PathValueisPath(row[z])) {
-                    const e = new Enemy(world_start_x, PathPosToWorldPos(z), grid_start_x);
+                    const e = new Enemy(enemy_model_type, world_start_x, PathPosToWorldPos(z), grid_start_x);
+                    global_enemy_ranges[enemy_model_type] += 1;
                     const wp = GetAllWayPoints(path_index, z);
                     if (wp.length === 0) {
                         throw "bad path pos";
@@ -131,10 +143,13 @@ export function Enemies({
                 }
             }
         }
+        console.log("first")
     }
     //console.log(tile_center.x, tile_center_x_grid_offset + tile_center.x);
     const make_new_enemies = (tile_center_x_grid_offset + tile_center.x) % 20 == 0;
     if (!first_render && tile_center_x_of_last_spawn !== tile_center.x && make_new_enemies) {
+        const enemy_model_type = getNextEnemyModelType();
+
         const offset = (tile_dimensions / 2) % path.length;
         const extra_paths = -Math.floor(tile_dimensions / (path.length * 2)) * path.length;
         tile_center_x_of_last_spawn = tile_center.x;
@@ -148,7 +163,8 @@ export function Enemies({
             const row = path[path_index];
             for (let z = 0; z < row.length; z++) {
                 if (PathValueisPath(row[z])) {
-                    const e = new Enemy(world_start_x, PathPosToWorldPos(z), grid_start_x);
+                    const e = new Enemy(enemy_model_type, world_start_x, PathPosToWorldPos(z), grid_start_x);
+                    global_enemy_ranges[enemy_model_type] += 1;
                     const wp = GetAllWayPoints(path_index, z);
                     if (wp.length === 0) {
                         throw "bad path pos";
@@ -167,6 +183,7 @@ export function Enemies({
                 break;
             }
         }
+        console.log(enemies_added, global_enemies.length);
     }
 
     last_tile_dimensions = tile_dimensions;
@@ -177,19 +194,14 @@ export function Enemies({
         for (let i = 0; i < global_enemies.length; i++) {
             const e = global_enemies[i];
             e.update(delta);
+            e.speed = enemy_speed;
             if (e.marked_for_delete) {
+                global_enemy_ranges[e.enemy_type] -= 1;
                 global_enemies.splice(i, 1);
                 e.visible = false;
             }
         }
     });
 
-    return (
-        <group>
-            {/* {global_enemies.map((mesh) => (
-                <primitive object={mesh} key={mesh.id}></primitive>
-            ))} */}
-            <Mushnubs enemies={global_enemies} />
-        </group>
-    );
+    return <EnemyInstances enemies={global_enemies} ranges={global_enemy_ranges} />;
 }

@@ -1,18 +1,17 @@
 import * as THREE from "three";
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useState } from "react";
-import { DirectionalLight } from "three";
+import { useState } from "react";
 import { OrbitControls } from "three-stdlib";
+import { tile_dimensions } from "./App";
+import { PATH_0, PathValueToTileNumber } from "./TileData";
 import { resetGlobalInstances, TileInstances } from "./TileInstances";
-import { PathValueToTileNumber, PATH_0 } from "./TileData";
 import { Enemies } from "./Enemies";
-
-//export const TILE_DIM = 60 as const;
 
 let last_x = 0;
 
 const tile_center = new THREE.Vector3(0, 5, 0);
+
 const max = 11;
 const min = 7;
 
@@ -20,27 +19,21 @@ export const MAX_TILE_TYPES = max + 1;
 let tiles: number[][] = [];
 
 const path = PATH_0;
-let path_row = 0;
-let latest_path_row: string[] = [];
 
+let path_row = 0;
 const nextPathRow = () => {
-    latest_path_row = path[path_row];
     path_row++;
     if (path_row >= path.length) path_row = 0;
 };
 
 export const Tiles = ({
     props,
-    tile_dimensions,
     camera_speed,
     orbit_ref,
-    light_ref,
 }: {
     props?: JSX.IntrinsicElements["group"];
-    tile_dimensions: number;
     camera_speed: number;
     orbit_ref: React.MutableRefObject<OrbitControls>;
-    light_ref: React.MutableRefObject<DirectionalLight>;
 }) => {
     const [changed, setChanged] = useState(true);
     const HALF_DIM = Math.floor(tile_dimensions / 2 + 0.5);
@@ -78,18 +71,12 @@ export const Tiles = ({
         setChanged(!changed);
     });
 
-    useEffect(() => {
-        light_ref.current.position.x = tile_center.x;
-        light_ref.current.target.position.x = tile_center.x - 1;
-        light_ref.current.target.updateMatrixWorld();
-    }, [changed]);
-
     const top_left = new THREE.Vector3(Math.floor(last_x) - HALF_DIM, tile_center.y, -HALF_DIM);
     const center = new THREE.Vector3(Math.floor(last_x), tile_center.y, 0);
     return (
         <group {...props}>
-            <TileInstances {...props} position={top_left} grid={tiles} />
-            <Enemies tile_center={center} latest_row={latest_path_row} tile_dimensions={tile_dimensions} />
+            <TileInstances {...props} position={top_left} grid={tiles} />;
+            <Enemies tile_center={center} tile_dimensions={tile_dimensions}/>
         </group>
     );
 };

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
 import { tile_dimensions as TILE_DIM } from "./App";
 import { getTile_Type, load_Tile, Tile_Instances, Tile_Type } from "./TileData";
 
