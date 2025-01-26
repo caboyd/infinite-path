@@ -21,11 +21,11 @@ export const tile_data: Tiles_Type = {
         tile_rotation_y: [0, Math.PI / 2, (2 * Math.PI) / 2, (3 * Math.PI) / 2],
     },
 
-    // tile_rock: { name: "tile_rock", valid_tile_types: [8] },
     tile_tree: { name: "tile_tree", valid_tile_types: [8] },
     tile_treeDouble: { name: "tile_treeDouble", valid_tile_types: [9, 10] },
     tile_treeQuad: { name: "tile_treeQuad", valid_tile_types: [11] },
     tile_hill: { name: "tile_hill", valid_tile_types: [12] },
+    tile_rock: { name: "tile_rock", valid_tile_types: [13] },
 };
 
 const valid_tile_types_data = (() => {
@@ -146,7 +146,10 @@ export function PathValueisPath(path_value: string): boolean {
 export function PathValueToTileNumber(path_value: string): number {
     switch (path_value) {
         case PathValue.___:
-            return 0;
+            let rand = Math.random() * 100;
+            if (rand > 65) return RandomTreeTile();
+            else return 0;
+
         case PathValue.__D:
             return 2;
         case PathValue.__U:
@@ -221,4 +224,14 @@ export function GetAllWayPoints(pos_x: number, pos_z: number): THREE.Vector3[] {
         if (PATH_0[x][z] === undefined) break;
     }
     return way_points;
+}
+
+export function RandomTreeTile() {
+    const max = 13;
+    const min = 4;
+    let rand = Math.floor(Math.random() * (max - min + 1) + min);
+
+    //skew heavier to blank tiles
+    if (rand < 7) rand = 7;
+    return rand;
 }

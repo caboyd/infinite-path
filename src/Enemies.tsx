@@ -6,7 +6,7 @@ import { GetAllWayPoints, PATH_0, PathPosToWorldPos, PathValueisPath } from "./T
 
 let enemy_speed: number;
 
-const global_enemies: Enemy[] = [];
+export const global_enemies: Enemy[] = [];
 const global_enemy_ranges = Object.fromEntries(EnemyModelTypes.map((o) => [o, 0]));
 
 let cur_model = -1;

@@ -8,7 +8,7 @@ const global_instances: Tile_Instances = {};
 function getTileInstance(child: THREE.Mesh): THREE.InstancedMesh {
     if (!global_instances[child.name]) {
         let max_instances = (TILE_DIM * TILE_DIM) / 2;
-        if (child.name.includes("tree")) max_instances *= 6;
+        if (child.name.includes("tree")) max_instances *= 4;
         const instance = new THREE.InstancedMesh(child.geometry, child.material, max_instances);
         global_instances[child.name] = instance;
         instance.count = 0;
