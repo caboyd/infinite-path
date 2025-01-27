@@ -143,7 +143,6 @@ export function Enemies({ tile_center, tile_dimensions }: { tile_center: THREE.V
                 }
             }
         }
-        console.log("first")
     }
     //console.log(tile_center.x, tile_center_x_grid_offset + tile_center.x);
     const make_new_enemies = (tile_center_x_grid_offset + tile_center.x) % 20 == 0;

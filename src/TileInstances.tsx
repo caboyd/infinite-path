@@ -8,7 +8,8 @@ const global_instances: Tile_Instances = {};
 function getTileInstance(child: THREE.Mesh): THREE.InstancedMesh {
     if (!global_instances[child.name]) {
         let max_instances = (TILE_DIM * TILE_DIM) / 2;
-        if (child.name.includes("tree")) max_instances *= 4;
+        if (child.name.includes("tree") ) max_instances *= 3;
+        else if (child.name.includes("Mesh_tile")) max_instances *= 2;
         const instance = new THREE.InstancedMesh(child.geometry, child.material, max_instances);
         global_instances[child.name] = instance;
         instance.count = 0;
@@ -140,7 +141,7 @@ export function TileInstances({
     }
 
     useFrame(() => {
-        const max_per_frame = 2;
+        const max_per_frame = 3;
         let per_frame = 0;
         for (let i = 0; i < instance_needs_update.length; i++) {
             if (instance_needs_update[i] == true) {

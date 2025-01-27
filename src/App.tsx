@@ -8,6 +8,7 @@ import { DirectionalLight, DirectionalLightShadow } from "three";
 import { OrbitControls } from "three-stdlib";
 import { Tiles } from "./Tiles";
 import * as THREE from "three";
+import { Towers } from "./Towers";
 
 export let tile_dimensions: number;
 let camera_speed: number;
@@ -38,6 +39,7 @@ const Scene = () => {
     return (
         <>
             <Tiles camera_speed={camera_speed} orbit_ref={orbit_ref} />
+
             <ambientLight color={[1, 1, 1]} intensity={0.0} />
             <directionalLight
                 ref={light_ref}

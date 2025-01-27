@@ -147,7 +147,7 @@ export function PathValueToTileNumber(path_value: string): number {
     switch (path_value) {
         case PathValue.___:
             let rand = Math.random() * 100;
-            if (rand > 65) return RandomTreeTile();
+            if (rand > 95) return RandomTreeTile();
             else return 0;
 
         case PathValue.__D:
